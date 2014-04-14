@@ -131,11 +131,15 @@ class WWW_model_movie extends WWW_Factory {
 			// Database location
 			$dbLoc=$this->getState('directory-data').'movies.db';
 			// If database file already exists, we simply load the database and unserialize its data to add a new movie to it
-			if(file_exists($dbLoc)){
-				$curDb=unserialize(file_get_contents($dbLoc));
-				// ID's are indexes in the stored array, so we seek the highest index in that array
-				$nextId=max(array_keys($curDb))+1;
-			} else {
+			if (file_exists($dbLoc)) {
+                $curDb = unserialize(file_get_contents($dbLoc));
+                // ID's are indexes in the stored array, so we seek the highest index in that array
+                if (!empty($this->id)) {
+                    $nextId = $this->id;
+                } else {
+                    $nextId = max(array_keys($curDb)) + 1;
+                }
+            } else {
 				// Since database did not exist, an array is created for new database
 				$curDb=array();
 				$nextId=1;
@@ -144,7 +148,7 @@ class WWW_model_movie extends WWW_Factory {
 			$movie=array();
 			$movie['title']=$this->title;
 			$movie['year']=$this->year;
-			// Adding the new node into database array
+			// Adding/updating the new node into database array
 			$curDb[$nextId]=$movie;
 			// We overwrite the old database with the updated database with a new movie
 			if(file_put_contents($dbLoc,serialize($curDb))){

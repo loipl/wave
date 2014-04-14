@@ -51,6 +51,50 @@ class WWW_controller_movies extends WWW_Factory {
 		}
 		return $this->returnData;
 	}
+        
+        /**
+	 * Simple example call to edit rows to database
+	 *
+	 * @param array $input input data sent to controller
+	 * @input [key] This key is one of the accepted input values
+	 * @return array
+	 * @output [key] This is an output value that might exist in the output array
+	 * @response [500] Data returned
+	 */
+	public function edit($input) {
+
+        // ID has to be set when editing
+        if (isset($input['id'])) {
+
+            // Data is only edited if no errors were encountered
+            // Getting model
+            $data = $this->getModel('movie');
+
+            // Data loading has to work based on the provided ID
+            if ($data->loadMovie($input['id'])) {
+                // Setting the changed input parameters
+                // Validating input
+                if (isset($input['title']) && trim($input['title']) != '') {
+                    $data->title = trim($input['title']);
+                }
+                if (isset($input['year']) && trim($input['year']) != '') {
+                    $data->year = trim($input['year']);
+                }
+
+                // Attempting to save
+                if ($data->saveMovie()) {
+                    $this->returnData['success'] = 'Movie saved!';
+                } else {
+                    $this->returnData['error'] = 'Failed to edit entry';
+                }
+            } else {
+                $this->returnData['error'] = 'Entry ID not found';
+            }
+        } else {
+            $this->returnData['error'] = 'Entry ID is missing';
+        }
+        return $this->returnData;
+    }
 	
 	/**
 	 * This returns data about a movie based on ID

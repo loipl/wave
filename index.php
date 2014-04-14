@@ -41,7 +41,7 @@
 	// Currently known location of the file in filesystem
 	// Double replacement occurs since some environments give document root with the slash in the end, some don't (like Windows)
 	$resourceRequest=str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$_SERVER['DOCUMENT_ROOT'].$resourceAddress);
-	
+        
 	// If requested URL does not point to a directory, then request is possibly made to a file
 	if(!is_dir($resourceRequest)){
 		// Getting directory, filename and extension information about current resource address
@@ -55,7 +55,13 @@
 			$resourceExtension=$resourceInfo['extension'];
 		}
 	}
-	
+        
+    // enable RESTFUL format
+    if(strpos($_SERVER["REQUEST_URI"],"restful.api") === 1) {
+        $resourceFile = 'restful';
+        $resourceExtension = 'api';
+    }
+
 // LOADING CONFIGURATION
 
 	// Defining root directory, this is required by handlers in /engine/ subfolder
@@ -66,7 +72,7 @@
 
 	// Including the configuration
 	if(!file_exists(__ROOT__.'filesystem'.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'config.tmp') || filemtime(__ROOT__.'config.ini')>filemtime(__ROOT__.'filesystem'.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'config.tmp')){
-		
+
 		// Configuration is parsed from INI file in the root of the system
 		$config=parse_ini_file(__ROOT__.'config.ini',false,INI_SCANNER_RAW);
 		
@@ -156,7 +162,7 @@
 			echo '<p>Cannot write cache in filesystem, please make sure filesystem folders are writable.</p>';
 		}
 		
-	} else {
+	} else {         
 		// Since INI file has not been changed, configuration is loaded from cache
 		$config=unserialize(file_get_contents(__ROOT__.'filesystem'.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'config.tmp'));
 	}
@@ -185,7 +191,7 @@
 	}
 	
 // LOADING HTTP REQUEST LIMITER
-
+        
 	// If limiter is configured to be used
 	if(isset($config['limiter']) && $config['limiter']){
 
@@ -232,7 +238,7 @@
 
 	// This error handler replaces default PHP error handler and is tied to Exception class
 	function WWW_exitHandler($type=false,$message=false,$file=false,$line=false){
-	
+
 		// if this is called through error handler
 		if($message){
 			$errorCheck=array();
@@ -407,13 +413,14 @@
 			die();
 			
 		} elseif($resourceExtension=='api'){
+
 			
 			// Replacing the extension in the request to find handler filename
 			$apiHandler=str_replace('.api','',$resourceFile);
 			
 			// Replacing all potentially sensitive characters from API handler name
 			$apiHandler=preg_replace('/[^0-9a-z\-\_]/i','',$apiHandler);
-			
+                        
 			// If the file exists then system loads the new API, otherwise 404 is returned
 			if(file_exists(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.api-'.$apiHandler.'.php')){
 									
