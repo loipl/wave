@@ -57,10 +57,10 @@
 	}
         
     // enable RESTFUL format
-    if(strpos($_SERVER["REQUEST_URI"],"restful.api") === 1) {
-        $resourceFile = 'restful';
-        $resourceExtension = 'api';
-    }
+//    if(strpos($_SERVER["REQUEST_URI"],"restful.api") === 1) {
+//        $resourceFile = 'restful';
+//        $resourceExtension = 'api';
+//    }
 
 // LOADING CONFIGURATION
 
@@ -378,21 +378,24 @@
 			require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.image.php');
 			
 		} elseif(in_array($resourceExtension,$config['resource-extensions'])){
-		
-			// Text-based resources are handled by Resource Handler, except for two special cases (robots.txt and sitemap.xml)
-			if($resourceFile=='sitemap.xml'){
-				// Sitemap is dynamically generated from sitemap files in /resource/ subfolder
-				require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.sitemap.php');
-			} elseif($resourceFile=='robots.txt'){
-				// Robots file is dynamically generated based on 'robots' configuration in config.php file
-				require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.robots.php');
-			} elseif($resourceExtension=='appcache'){
-				// Appcache settings can be dynamically generated
-				require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.appcache.php');
-			} else {
-				// In every other case the system loads text based resources with additional options, such as compressions and minifying, with Resource Handler
-				require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.resource.php');
-			}
+            // Text-based resources are handled by Resource Handler, except for two special cases (robots.txt and sitemap.xml)
+            if($resourceFile=='sitemap.xml'){
+                // Sitemap is dynamically generated from sitemap files in /resource/ subfolder
+                require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.sitemap.php');
+            } elseif($resourceFile=='robots.txt'){
+                // Robots file is dynamically generated based on 'robots' configuration in config.php file
+                require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.robots.php');
+            } elseif($resourceExtension=='appcache'){
+                // Appcache settings can be dynamically generated
+                require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.appcache.php');
+            } else {
+                if (file_exists(__ROOT__.$_SERVER['REQUEST_URI'])) {
+                    // In every other case the system loads text based resources with additional options, such as compressions and minifying, with Resource Handler
+                    require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.resource.php');
+                } else {
+                    require(__ROOT__.'overrides/engine'.DIRECTORY_SEPARATOR.'handler.api-restful.php');
+                }
+            }
 			
 		} elseif(in_array($resourceExtension,$config['file-extensions'])){
 		
@@ -442,7 +445,9 @@
 			
 			}
 			
-		} else {
+		} else if ($resourceExtension === 'json' || $resourceExtension === 'xml') {
+            require(__ROOT__.'overrides/engine'.DIRECTORY_SEPARATOR.'handler.api-restful.php');
+        } else {
 		
 			// Every other extension is handled by Data Handler, which loads URL and View controllers for website views
 			require(__ROOT__.'engine'.DIRECTORY_SEPARATOR.'handler.data.php');

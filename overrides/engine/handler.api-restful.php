@@ -89,15 +89,20 @@
         
     //componet of URL
         // 0: empty string
-        // 1: handler
-        // 2: controller
-        // 3: object-id        
-        // 4-5, 6-7 : pair of key-value
-    $urlComponents = explode('/', $_SERVER["REQUEST_URI"]);
-    $controllerName = empty($urlComponents[2]) ? null : $urlComponents[2];       
+        // 1: controller
+        // 2: object-id        
+        // 3-4, 5-6 : pair of key-value
+    $requestURI = $_SERVER["REQUEST_URI"];
+    $urlInfo = pathinfo($requestURI);
+    $extension = $urlInfo['extension'];
+    $requestURI = str_replace('.'.$extension, '', $requestURI);
+    $inputData['www-return-type'] = $extension;
+    
+    $urlComponents = explode('/', $requestURI);
+    $controllerName = empty($urlComponents[1]) ? null : $urlComponents[1];       
 
-    $objectId = empty($urlComponents[3]) ? null : $urlComponents[3];
-    $startResource = 4;
+    $objectId = empty($urlComponents[2]) ? null : $urlComponents[2];
+    $startResource = 3;
     
     // invalid controller name
     if (is_null($controllerName)) {
@@ -120,7 +125,7 @@
             break;
         case 'POST':
             $inputData['www-command'] = $controllerName . '-add';
-            $startResource = 3;
+            $startResource = 2;
             break;
         case 'PUT':
         case 'PATCH':
@@ -176,7 +181,7 @@
 	} else {
 		$state->data['api-profile']=$state->data['api-public-profile'];
 	}
-	
+    
 	// API command is executed with all the data that was sent by the user agent, along with other www-* settings
 	$api->command($inputData,false,((!empty($validationExceptions))?$validationExceptions:true),true);
 	
